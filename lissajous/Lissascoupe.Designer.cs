@@ -1,6 +1,6 @@
 ﻿namespace lissajous
 {
-    partial class Form1
+    partial class Lissascoupe
     {
         /// <summary>
         /// Required designer variable.
@@ -30,14 +30,14 @@
         {
             this.SuspendLayout();
             // 
-            // Form1
+            // Lissascoupe
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(400, 400);
             this.DoubleBuffered = true;
-            this.Name = "Form1";
-            this.Text = "Form1";
+            this.Name = "Lissascoupe";
+            this.Text = "Lissascoupe";
             this.ResumeLayout(false);
 
         }

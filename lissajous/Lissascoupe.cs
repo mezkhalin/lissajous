@@ -36,7 +36,7 @@ namespace lissajous
         }
     }
 
-    public partial class Form1 : Form
+    public partial class Lissascoupe : Form
     {
         [DllImport("user32.dll")]
         public static extern int PeekMessage(out NativeMessage message, IntPtr window, uint filterMin, uint filterMax, uint remove);
@@ -48,10 +48,11 @@ namespace lissajous
 
         public static readonly int BitmapWidth = 400;
         public static readonly int BitmapHeight = 400;
-        public static float Fade = .5f;
-        public static int GStrength = 40;
-        public static int RStrength = 15;
-        public static int BStrength = 15;
+
+        public static float Fade = .6f;
+        public static int GStrength = 15;
+        public static int RStrength = 5;
+        public static int BStrength = 5;
 
         public Point[] Buffer = new Point[] { new Point(0f, 0f) };
         public int BufferSize = 1;
@@ -60,13 +61,17 @@ namespace lissajous
         private BitmapData bitmapData;
         private byte[] bitmapBytes;
 
-        public Form1()
+        private int midByteIdx;
+
+        public Lissascoupe()
         {
             InitializeComponent();
             
             bitmap = new Bitmap(BitmapWidth, BitmapHeight, PixelFormat.Format24bppRgb);
             LockBitmap(false);
             UnlockBitmap();
+
+            midByteIdx = ((BitmapHeight / 2) * bitmapData.Stride) + ((BitmapWidth / 2) * 3);
 
             Application.Idle += Application_Idle;
             Paint += OnPaint;
@@ -77,11 +82,6 @@ namespace lissajous
             FormClosing += (s, e) => { capture.StopRecording(); };
 
             capture.StartRecording();
-        }
-
-        private void OnPaint(object sender, PaintEventArgs e)
-        {
-            e.Graphics.DrawImage(bitmap, ClientRectangle);
         }
 
         private void LockBitmap (bool copy = true)
@@ -100,37 +100,115 @@ namespace lissajous
             bitmap.UnlockBits(bitmapData);
         }
 
+        private void SetPixel (int x, int y)
+        {
+            int pos = (y * bitmapData.Stride) + (x * 3);
+            bitmapBytes[pos] = (byte)Math.Min(bitmapBytes[pos] + BStrength, 255);
+            bitmapBytes[pos + 1] = (byte)Math.Min(bitmapBytes[pos + 1] + GStrength, 255);
+            bitmapBytes[pos + 2] = (byte)Math.Min(bitmapBytes[pos + 2] + RStrength, 255);
+        }
+
+        private void efla_d(int x, int y, int x2, int y2)
+        {
+            bool yLonger = false;
+            int incrementVal, endVal;
+            int shortLen = y2 - y;
+            int longLen = x2 - x;
+
+            if (Math.Abs(shortLen) > Math.Abs(longLen))
+            {
+                int swap = shortLen;
+                shortLen = longLen;
+                longLen = swap;
+                yLonger = true;
+            }
+
+            endVal = longLen;
+
+            if (longLen < 0)
+            {
+                incrementVal = -1;
+                longLen = -longLen;
+            }
+            else incrementVal = 1;
+
+            int decInc;
+            if (longLen == 0) decInc = 0;
+            else decInc = (shortLen << 16) / longLen;
+
+            int j = 0;
+            if (yLonger)
+            {
+                for (int i = 0; i != endVal; i += incrementVal)
+                {
+                    SetPixel(x + (j >> 16), y + i);
+                    j += decInc;
+                }
+            }
+            else
+            {
+                for (int i = 0; i != endVal; i += incrementVal)
+                {
+                    SetPixel(x + i, y + (j >> 16));
+                    j += decInc;
+                }
+            }
+        }
+
+        private void testSquare (int x, int y, int x2, int y2)
+        {
+            efla_d(x, y, x2, y2);
+            efla_d(x2, y2, x2 + (y - y2), y2 + (x2 - x));
+            efla_d(x, y, x + (y - y2), y + (x2 - x));
+            efla_d(x + (y - y2), y + (x2 - x), x2 + (y - y2), y2 + (x2 - x));
+        }
+
+        private void PaintBuffer ()
+        {
+            int w = BitmapWidth - 1;
+            int h = BitmapHeight - 1;
+            int x, y, x2, y2;
+            Point p, p2;
+            for(int i = 0; i < BufferSize - 1; i++)
+            {
+                p = Buffer[i];
+                p2 = Buffer[i + 1];
+                x = (int)(p.X * w);
+                y = (int)(p.Y * h);
+                x2 = (int)(p2.X * w);
+                y2 = (int)(p2.Y * h);
+                efla_d(x, y, x2, y2);
+            }
+        }
+
+        private void OnPaint(object sender, PaintEventArgs e)
+        {
+            e.Graphics.DrawImage(bitmap, ClientRectangle);
+        }
+
         private void Application_Idle(object sender, EventArgs e)
         {
-            while(IsIdle())
+            while (IsIdle())
             {
+
                 if (BufferSize > 1)
                 {
                     LockBitmap();
 
                     for (int i = 0; i < bitmapBytes.Length; i++)
-                        bitmapBytes[i] = (byte)(bitmapBytes[i] * Fade);
+                    {
+                        float v = bitmapBytes[i] / 255f;
+                        bitmapBytes[i] = (byte)(v * v * 255 * Fade);
+                    }
 
                     PaintBuffer();
 
-                    UnlockBitmap();
+                    //Buffer = new Point[0];
+                    //BufferSize = 0;
 
+                    UnlockBitmap();
                     Refresh();
                 }
-            }
-        }
-
-        private void PaintBuffer ()
-        {
-            int x, y, pos;
-            for(int i = 0; i < BufferSize; i++)
-            {
-                x = (int)(Buffer[i].X * (BitmapWidth - 1));
-                y = (int)(Buffer[i].Y * (BitmapHeight - 1));
-                pos = (y * bitmapData.Stride) + (x * 3);
-                bitmapBytes[pos + 1] = (byte)Math.Min(bitmapBytes[pos + 1] + GStrength, 255);
-                bitmapBytes[pos] = (byte)Math.Min(bitmapBytes[pos] + BStrength, 255);
-                bitmapBytes[pos + 2] = (byte)Math.Min(bitmapBytes[pos + 2] + RStrength, 255);
             }
         }
 
