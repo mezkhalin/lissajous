@@ -14,9 +14,16 @@ namespace lissajous
         [STAThread]
         static void Main()
         {
+            /*
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Lissascoupe());
+            */
+            Sharpscope scope;
+            using (scope = new Sharpscope(400, 400, "Sharpscope"))
+            {
+                scope.Run(60);
+            }
         }
     }
 }
