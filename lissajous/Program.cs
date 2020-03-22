@@ -20,9 +20,9 @@ namespace lissajous
             Application.Run(new Lissascoupe());
             */
             Sharpscope scope;
-            using (scope = new Sharpscope(400, 400, "Sharpscope"))
+            using (scope = new Sharpscope(800, 800, "Sharpscope"))
             {
-                scope.Run(60);
+                scope.Run(120);
             }
         }
     }
