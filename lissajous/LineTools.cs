@@ -41,7 +41,6 @@ namespace lissajous
                 {
                     cur.Normal = Normal(dirA);
                     cur.MiterLength = Width;
-                    //data[i] = cur;
                 }
                 else
                 {
@@ -76,77 +75,6 @@ namespace lissajous
             float length = halfThickness / Vector2.Dot(miter, dirAN);
             return new Vector3(miter.X, miter.Y, length);
         }
-
-        /*private static Vector3[] ComputeNormals(Vector2[] points, bool closed = false)
-        {
-
-            for (int i = 1; i < points.Length; i++)
-            {
-                Vector2 last = points[i - 1];
-                Vector2 cur = points[i];
-                Vector2 next = Vector2.Zero;
-
-                if (i < points.Length - 1) next = points[i + 1];
-                else isLast = true;
-
-                lineA = Direction(cur, last);
-                if (isFirst)
-                {
-                    curNormal = Normal(lineA);
-                    isFirst = false;
-                }
-
-                if (i == 1)   // addNext(curNomarl, 1)
-                {
-                    data.Add(new Vector3(curNormal.X, curNormal.Y, Width));
-                }
-
-                if (isLast)
-                {
-                    curNormal = Normal(lineA);
-                    data.Add(new Vector3(curNormal.X, curNormal.Y, Width));
-                }
-                else
-                {
-                    lineB = Direction(next, cur);
-                    float miterLength = ComputeMiter(lineA, lineB, Width, out miter);
-                    if (miterLength < 0) miterLength = Math.Abs(miterLength);
-                    miterLength = Math.Min(miterLength, Width * 2f);
-                    data.Add(new Vector3(miter.X, miter.Y, miterLength));
-                }
-            }
-
-            return data.ToArray();
-        }*/
-
-        /*public static List<VertexData> CreateLine (float[] pos)
-        {
-            Vector2[] points = new Vector2[pos.Length / 2];
-
-            for(int i = 0; i < pos.Length; i+=2)
-            {
-                points[i / 2] = new Vector2(pos[i], pos[i + 1]);
-            }
-
-            Vector3[] normals = ComputeNormals(points);
-            List<VertexData> data = new List<VertexData>();
-
-            for(int i = 0; i < points.Length; i++)
-            {
-                Vector2 point = points[i];
-                Vector3 normal = normals[i];
-                VertexData d = new VertexData(
-                        point.X, point.Y,
-                        normal.X, normal.Y, normal.Z
-                    );
-                data.Add(d);
-                d.nX *= -1f;
-                d.nY *= -1f;
-                data.Add(d);
-            }
-
-            return data;
-        }*/
 
         #region UTILS
 

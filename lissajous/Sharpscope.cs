@@ -22,19 +22,13 @@ namespace lissajous
         public float nX;
         public float nY;
         public float nL;
-
-        /*public VertexData(float x, float y, float nx, float ny, float nl)
-        {
-            X = x;
-            Y = y;
-            nX = nx;
-            nY = ny;
-            nL = nl;
-        }*/
     }
 
     public class Sharpscope : GameWindow
     {
+        public static readonly int ATTRIB_COUNT = 7;
+        public static readonly int VERTEX_STRIDE = ATTRIB_COUNT * 2;
+
         private float[] testSquare = new float[]
         {
             -.5f, -.5f,
@@ -55,8 +49,8 @@ namespace lissajous
             
         };
 
-        private int vertexLength = 3000;
-        private int indiceLength = 0;
+        private int vertexLength = 2000;
+        private int ticks = 0;
 
         private int vertexBufferObject;
         private int elementBufferObject;
@@ -95,7 +89,7 @@ namespace lissajous
 
             for (int i = 0; i < vCount; i++)
             {
-                int idx = i * 7 * 2;
+                int idx = i * VERTEX_STRIDE;
                 vd = dataQueue.Dequeue();
 
                 vertices[idx] = vertices[idx + 7] = vd.Position.X;
@@ -128,15 +122,16 @@ namespace lissajous
             GL.BindVertexArray(vertexArrayObject);
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBufferObject);
-            GL.BufferData(BufferTarget.ArrayBuffer, vCount * 2 * 7 * sizeof(float), vertices, BufferUsageHint.StreamDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, vCount * VERTEX_STRIDE * sizeof(float), vertices, BufferUsageHint.StreamDraw);
 
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, elementBufferObject);
             GL.BufferData(BufferTarget.ElementArrayBuffer, vCount * 2 * sizeof(uint), indices, BufferUsageHint.StreamDraw);
-
-            //GL.DrawArrays(PrimitiveType.LineLoop, 0, indiceLength);
+            
             GL.DrawElements(PrimitiveType.TriangleStrip, vCount * 2, DrawElementsType.UnsignedInt, 0);
 
             SwapBuffers();
+
+            ticks++;
 
             base.OnRenderFrame(e);
         }
@@ -164,49 +159,24 @@ namespace lissajous
 
             LineTools.ComputeNormals(ref data);
             if (dataQueue.Count >= data.Count) dataQueue.Clear();
+            ticks = Math.Max(ticks - 1, 1);
+            vertexLength = (int)Math.Ceiling((double)(data.Count / ticks));
+            ticks = 0;
             data.ForEach(dataQueue.Enqueue);
-            //vertices = new float[data.Count * 7 * 2];
 
-            /*for(int i = 0; i < data.Count; i++)
-            {
-                int idx = i * 7 * 2;
-                vd = data[i];
+            if (vertexLength * VERTEX_STRIDE > vertices.Length) setupArrays(vertexLength);
+        }
 
-                vertices[idx]       = vertices[idx + 7] = vd.Position.X;
-                vertices[idx + 1]   = vertices[idx + 8] = vd.Position.Y;
-
-                if(i < data.Count - 1)  // positions for next point in line
-                {
-                    vertices[idx + 2] = vertices[idx + 9]  = data[i + 1].Position.X;
-                    vertices[idx + 3] = vertices[idx + 10] = data[i + 1].Position.Y;
-                }
-                else
-                {
-                    vertices[idx + 2] = vertices[idx + 9]  = vd.Position.X;
-                    vertices[idx + 3] = vertices[idx + 10] = vd.Position.Y;
-                }
-
-                vertices[idx + 4] = vd.Normal.X;
-                vertices[idx + 5] = vd.Normal.Y;
-                vertices[idx + 11] = vd.Normal.X * -1f;
-                vertices[idx + 12] = vd.Normal.Y * -1f;
-                vertices[idx + 6] = vertices[idx + 13] = vd.MiterLength;
-            }
-
-            int numIndices = data.Count * 2;
-            if (numIndices > indices.Length)
-            {
-                indices = new int[numIndices];
-                for (int i = 0; i < numIndices; i++) indices[i] = i;
-            }
-            indiceLength = numIndices;*/
+        private void setupArrays (int length)
+        {
+            vertices = new float[length * VERTEX_STRIDE];
+            indices = new int[length * 2];
+            for (int i = 0; i < indices.Length; i++) indices[i] = i;
         }
 
         private void loadGL ()
         {
-            vertices = new float[vertexLength * 7 * 2];
-            indices = new int[vertexLength * 2];
-            for (int i = 0; i < vertexLength * 2; i++) indices[i] = i;
+            setupArrays(vertexLength);
 
             GL.ClearColor(0f, 0f, 0f, 1f);
             
@@ -232,15 +202,15 @@ namespace lissajous
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, elementBufferObject);
 
             int posLocation = shader.GetAttribLocation("aPosition");
-            GL.VertexAttribPointer(posLocation, 2, VertexAttribPointerType.Float, false, 7 * sizeof(float), 0);
+            GL.VertexAttribPointer(posLocation, 2, VertexAttribPointerType.Float, false, ATTRIB_COUNT * sizeof(float), 0);
             GL.EnableVertexAttribArray(posLocation);
 
             int nxtLocation = shader.GetAttribLocation("aNext");
-            GL.VertexAttribPointer(nxtLocation, 2, VertexAttribPointerType.Float, false, 7 * sizeof(float), 2 * sizeof(float));
+            GL.VertexAttribPointer(nxtLocation, 2, VertexAttribPointerType.Float, false, ATTRIB_COUNT * sizeof(float), 2 * sizeof(float));
             GL.EnableVertexAttribArray(nxtLocation);
 
             int norLocation = shader.GetAttribLocation("aNormal");
-            GL.VertexAttribPointer(norLocation, 3, VertexAttribPointerType.Float, true, 7 * sizeof(float), 4 * sizeof(float));
+            GL.VertexAttribPointer(norLocation, 3, VertexAttribPointerType.Float, true, ATTRIB_COUNT * sizeof(float), 4 * sizeof(float));
             GL.EnableVertexAttribArray(norLocation);
         }
 
