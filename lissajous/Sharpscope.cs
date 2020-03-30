@@ -157,6 +157,8 @@ namespace lissajous
                 data.Add(vd);
             }
 
+            if (dataQueue == null) return;  // test fix for error on close
+
             LineTools.ComputeNormals(ref data);
             if (dataQueue.Count >= data.Count) dataQueue.Clear();
             ticks = Math.Max(ticks - 1, 1);

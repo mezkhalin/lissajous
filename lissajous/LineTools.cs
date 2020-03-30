@@ -14,7 +14,7 @@ namespace lissajous
 
         public static void ComputeNormals (ref List<VertexData> data)
         {
-            float doubleWidth = Width * 2f;
+            float miterMax = Width * 2f;
             float halfWidth = Width / 2f;
             bool isFirst = true;  // work-around non-nullable vectors
             bool isLast = false;
@@ -56,7 +56,7 @@ namespace lissajous
                     //get the necessary length of our miter
                     cur.MiterLength = halfWidth / Vector2.Dot(cur.Normal, new Vector2(-dirA.Y, dirA.X));
                     if (cur.MiterLength < 0) cur.MiterLength = Math.Abs(cur.MiterLength);
-                    if (cur.MiterLength > doubleWidth) cur.MiterLength = doubleWidth;
+                    if (cur.MiterLength > miterMax) cur.MiterLength = miterMax;
                 }
 
                 data[i] = cur;
