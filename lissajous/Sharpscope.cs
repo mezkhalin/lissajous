@@ -4,10 +4,10 @@ using OpenTK.Graphics.OpenGL4;
 using NAudio.Wave;
 using System;
 using System.Collections.Generic;
+using lissajous.Materials;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using lissajous.Shaders;
 
 namespace lissajous
 {
@@ -29,34 +29,45 @@ namespace lissajous
         public static readonly int ATTRIB_COUNT = 7;
         public static readonly int VERTEX_STRIDE = ATTRIB_COUNT * 2;
 
-        private float[] testSquare = new float[]
-        {
-            -.5f, -.5f,
-            -.5f, .48f,
-            .5f, .5f,
-            -.5f, .5f
-        };
-
         private Queue<VertexData> dataQueue = new Queue<VertexData>();
 
-        private float[] vertices = new float[]
+        private readonly float[] quad = new float[]
         {
-            
+            -1.0f, -1.0f,
+            1.0f, -1.0f,
+            -1.0f,  1.0f,
+            -1.0f,  1.0f,
+            1.0f, -1.0f,
+            1.0f,  1.0f
         };
 
-        private int[] indices = new int[]
-        {
-            
-        };
+        private float[] vertices = new float[] {};
+        private int[] indices = new int[] {};
 
         private int vertexLength = 2000;
         private int ticks = 0;
+
+        private int quadArrayObject;
+        private int quadVertexObject;
+        private int frameBufferObject;
+        private int textureObject;
+
+        private Texture fbTexA;
+        private Texture fbTexB;
 
         private int vertexBufferObject;
         private int elementBufferObject;
         private int vertexArrayObject;
 
-        private Shader shader;
+        private LineMaterial lineMat;
+        private ThresholdMaterial threshMat;
+        private BlurMaterial blurMat;
+        private CombineMaterial combineMat;
+        private Material passMat;
+
+        private Shader lineShader;
+        private Shader ppShader;
+        private Shader threshShader;
 
         private WasapiLoopbackCapture audio;
 
@@ -68,6 +79,7 @@ namespace lissajous
         {
             random = new Random((int)DateTime.Now.Ticks);
 
+            loadFrameBuffer();
             loadGL();
             loadNAudio();
 
@@ -115,9 +127,66 @@ namespace lissajous
 
             //--------
 
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, frameBufferObject);   // set off-screen buffer as target
+            //GL.Viewport(0, 0, Width, Height);
+            //GL.Clear(ClearBufferMask.ColorBufferBit);
+
+            lineMat.Use();
+            DrawLines(vCount);  // render lines to buffer A
+
+            // -------- start post-processing
+
+            GL.BindVertexArray(quadArrayObject);
+
+            threshMat.Use(lineMat.RenderTarget);            // threshold pass
+            GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
+
+            Texture origTarget = blurMat.RenderTarget;
+            Texture tmpTarget = new Texture(Width, Height);
+
+            blurMat.Horizontal = true;
+            blurMat.RenderTarget = tmpTarget;
+            blurMat.Use(threshMat.RenderTarget);            // blur pass
+            GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
+
+            blurMat.Horizontal = false;
+            blurMat.RenderTarget = origTarget;
+            blurMat.Use(tmpTarget);            // blur pass
+            GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
+
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);   // render to screen buffer
+            GL.Viewport(0, 0, Width, Height);
             GL.Clear(ClearBufferMask.ColorBufferBit);
 
-            shader.Use();
+            combineMat.Combine = lineMat.RenderTarget;
+            combineMat.Use(blurMat.RenderTarget);
+            //passMat.Use(blurMat.RenderTarget);
+            GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
+
+            GL.DeleteTexture(tmpTarget.Handle);
+
+            /*ppShader.Use(); // start post-processing
+            GL.BindVertexArray(quadArrayObject);
+
+            ppShader.SetInt("Horizontal", 1);   // horizontal pass
+            GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
+
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);   // set screen as render target
+            GL.Viewport(0, 0, Width, Height);
+            GL.Clear(ClearBufferMask.ColorBufferBit);   // clear screen
+
+            ppShader.SetInt("Horizontal", 0);   // vertical pass
+            GL.DrawArrays(PrimitiveType.Triangles, 0, 6);*/
+
+            SwapBuffers(); // present
+            ticks++;
+
+            base.OnRenderFrame(e);
+        }
+
+        private void DrawLines (int vCount)
+        {
+            //lineShader.Use();
 
             GL.BindVertexArray(vertexArrayObject);
 
@@ -126,14 +195,8 @@ namespace lissajous
 
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, elementBufferObject);
             GL.BufferData(BufferTarget.ElementArrayBuffer, vCount * 2 * sizeof(uint), indices, BufferUsageHint.StreamDraw);
-            
+
             GL.DrawElements(PrimitiveType.TriangleStrip, vCount * 2, DrawElementsType.UnsignedInt, 0);
-
-            SwapBuffers();
-
-            ticks++;
-
-            base.OnRenderFrame(e);
         }
 
         protected override void OnResize(EventArgs e)
@@ -157,8 +220,6 @@ namespace lissajous
                 data.Add(vd);
             }
 
-            if (dataQueue == null) return;  // test fix for error on close
-
             LineTools.ComputeNormals(ref data);
             if (dataQueue.Count >= data.Count) dataQueue.Clear();
             ticks = Math.Max(ticks - 1, 1);
@@ -176,6 +237,47 @@ namespace lissajous
             for (int i = 0; i < indices.Length; i++) indices[i] = i;
         }
 
+        private void loadFrameBuffer ()
+        {
+
+            frameBufferObject = GL.GenFramebuffer();
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, frameBufferObject);
+            GL.DrawBuffers(1, new DrawBuffersEnum[] { DrawBuffersEnum.ColorAttachment0 });
+
+            /*fbTexA = new Texture(Width, Height);
+            GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, fbTexA.Handle, 0);
+
+            GL.DrawBuffers(1, new DrawBuffersEnum[] { DrawBuffersEnum.ColorAttachment0 });
+
+            fbTexB = new Texture(Width, Height);
+            GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment1, fbTexB.Handle, 0);*/
+
+            quadVertexObject = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, quadVertexObject);
+            GL.BufferData(BufferTarget.ArrayBuffer, quad.Length * sizeof(float), quad, BufferUsageHint.StaticDraw);
+
+            quadArrayObject = GL.GenVertexArray();
+            GL.BindVertexArray(quadArrayObject);
+
+            ppShader = new Shader("Shaders/quad.vert", "Shaders/blur.frag");
+
+            GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
+            GL.EnableVertexAttribArray(0);
+
+            int HorizontalAtt = ppShader.GetAttribLocation("Horizontal");
+            GL.VertexAttribPointer(HorizontalAtt, 1, VertexAttribPointerType.Byte, false, sizeof(byte), 4 * sizeof(float));
+            GL.EnableVertexAttribArray(HorizontalAtt);
+
+            threshShader = new Shader("Shaders/quad.vert", "Shaders/thresh.frag");
+            GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
+            GL.EnableVertexAttribArray(0);
+
+            threshMat = new ThresholdMaterial(Width, Height);
+            passMat = new Material(Width, Height);
+            blurMat = new BlurMaterial(Width, Height);
+            combineMat = new CombineMaterial(Width, Height);
+        }
+
         private void loadGL ()
         {
             setupArrays(vertexLength);
@@ -185,9 +287,6 @@ namespace lissajous
             GL.Enable(EnableCap.Blend);
             GL.BlendEquation(BlendEquationMode.FuncAdd);
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.DstAlpha);
-
-            shader = new Shader("Shaders/shader.vert", "Shaders/shader.frag");
-            shader.Use();
 
             vertexBufferObject = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBufferObject);
@@ -203,30 +302,46 @@ namespace lissajous
             GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBufferObject);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, elementBufferObject);
 
-            int posLocation = shader.GetAttribLocation("aPosition");
+            lineMat = new LineMaterial(Width, Height);
+
+            /*lineShader = new Shader("Shaders/line.vert", "Shaders/line.frag");
+            lineShader.Use();
+
+            int posLocation = lineShader.GetAttribLocation("aPosition");
             GL.VertexAttribPointer(posLocation, 2, VertexAttribPointerType.Float, false, ATTRIB_COUNT * sizeof(float), 0);
             GL.EnableVertexAttribArray(posLocation);
 
-            int nxtLocation = shader.GetAttribLocation("aNext");
+            int nxtLocation = lineShader.GetAttribLocation("aNext");
             GL.VertexAttribPointer(nxtLocation, 2, VertexAttribPointerType.Float, false, ATTRIB_COUNT * sizeof(float), 2 * sizeof(float));
             GL.EnableVertexAttribArray(nxtLocation);
 
-            int norLocation = shader.GetAttribLocation("aNormal");
+            int norLocation = lineShader.GetAttribLocation("aNormal");
             GL.VertexAttribPointer(norLocation, 3, VertexAttribPointerType.Float, true, ATTRIB_COUNT * sizeof(float), 4 * sizeof(float));
-            GL.EnableVertexAttribArray(norLocation);
+            GL.EnableVertexAttribArray(norLocation);*/
         }
 
         private void unloadGL ()
         {
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+            GL.BindTexture(TextureTarget.Texture2D, 0);
+
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
             GL.BindVertexArray(0);
             GL.UseProgram(0);
 
+            GL.DeleteFramebuffer(frameBufferObject);
+            GL.DeleteTexture(textureObject);
+            GL.DeleteBuffer(quadVertexObject);
+            GL.DeleteVertexArray(quadArrayObject);
             GL.DeleteBuffer(vertexBufferObject);
             GL.DeleteBuffer(elementBufferObject);
             GL.DeleteVertexArray(vertexArrayObject);
-            GL.DeleteProgram(shader.Handle);
+            GL.DeleteProgram(ppShader.Handle);
+            lineMat.Dispose();
+            passMat.Dispose();
+            threshMat.Dispose();
+            blurMat.Dispose();
         }
 
         private void loadNAudio ()

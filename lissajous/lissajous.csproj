@@ -62,10 +62,16 @@
     <Compile Include="Lissascoupe.Designer.cs">
       <DependentUpon>Lissascoupe.cs</DependentUpon>
     </Compile>
+    <Compile Include="Materials\BlurMaterial.cs" />
+    <Compile Include="Materials\CombineMaterial.cs" />
+    <Compile Include="Materials\LineMaterial.cs" />
+    <Compile Include="Materials\Material.cs" />
+    <Compile Include="Materials\ThresholdMaterial.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Shaders\Shader.cs" />
+    <Compile Include="Shader.cs" />
     <Compile Include="Sharpscope.cs" />
+    <Compile Include="Texture.cs" />
     <EmbeddedResource Include="Lissascoupe.resx">
       <DependentUpon>Lissascoupe.cs</DependentUpon>
     </EmbeddedResource>
@@ -89,10 +95,25 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <None Include="Shaders\shader.frag">
+    <None Include="Shaders\combine.frag">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Shaders\shader.vert">
+    <None Include="Shaders\pass.frag">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\blur.frag">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\quad.vert">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\line.frag">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\line.vert">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\thresh.frag">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

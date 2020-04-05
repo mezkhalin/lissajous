@@ -1,9 +1,9 @@
 ﻿#version 330
 
+layout(location=0) out vec4 outputColor;
 in vec4 opColor;
-out vec4 outputColor;
 
-void main()
+void main(void)
 {
     outputColor = vec4(opColor.xyz, opColor.w * opColor.w); //vec4(0.04, .5, 0.04, .4);
 }

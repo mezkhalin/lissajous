@@ -5,7 +5,7 @@ using System.Text;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 
-namespace lissajous.Shaders
+namespace lissajous
 {
     // A simple class meant to help create shaders.
     public class Shader
