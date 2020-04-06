@@ -10,16 +10,15 @@ namespace lissajous.Materials
     public class ThresholdMaterial : Material
     {
 
-        public ThresholdMaterial (int Width, int Height) : base(Width, Height)
+        public ThresholdMaterial ()
         {
             RenderShader = new Shader("Shaders/quad.vert", "Shaders/thresh.frag");
-            RenderShader.Use();
         }
 
-        public override void Use(Texture source = null)
+        public override void Use(Texture source, Texture target)
         {
-            base.Use(source);
-            UseRenderTarget();
+            RenderShader.Use();
+            Render(source, target);
         }
     }
 }

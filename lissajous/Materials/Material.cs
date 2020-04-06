@@ -1,50 +1,47 @@
 ﻿using OpenTK.Graphics.OpenGL4;
+using OpenTK;
 
 namespace lissajous.Materials
 {
     public class Material
     {
-        public Texture Source;
-        public Texture RenderTarget;
         public Shader RenderShader;
 
-        internal int Width;
-        internal int Height;
+        internal int Width { get { return Sharpscope.GetWidth; } }
+        internal int Height { get { return Sharpscope.GetHeight; } }
 
-        public Material (int Width, int Height)
+        public Material ()
         {
-            this.Height = Height;
-            this.Width = Width;
-
-            RenderTarget = new Texture(Width, Height);
             RenderShader = new Shader("Shaders/quad.vert", "Shaders/pass.frag");
         }
 
-        public virtual void Use(Texture source = null)
+        public virtual void Use(Texture source, Texture target)
         {
             if (RenderShader == null) return;
-
-            if (source != null)
-            {
-                Source = source;
-                RenderShader.SetInt("Source", 0);
-                Source.Use(TextureUnit.Texture0);
-            }
-
             RenderShader.Use();
+            Render(source, target);
         }
 
-        internal void UseRenderTarget (bool clear = true)
+        internal void Render (Texture source, Texture target, bool clear = true, bool isPost = true)
         {
-            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, RenderTarget.Handle, 0);
-            GL.Viewport(0, 0, Width, Height);
-            if(clear) GL.Clear(ClearBufferMask.ColorBufferBit);
+            if(source != null)
+            {
+                RenderShader.SetInt("Source", 0);
+                source.Use(TextureUnit.Texture0);
+            }
+
+            if(target != null)
+            {
+                GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, target.Handle, 0);
+                GL.Viewport(0, 0, target.Width, target.Height);
+                if(clear) GL.Clear(ClearBufferMask.ColorBufferBit);
+            }
+            
+            if (isPost) GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
         }
 
         public virtual void Dispose ()
         {
-            if(Source != null) GL.DeleteTexture(Source.Handle);
-            if(RenderTarget != null) GL.DeleteTexture(RenderTarget.Handle);
             if(RenderShader != null) GL.DeleteProgram(RenderShader.Handle);
         }
     }

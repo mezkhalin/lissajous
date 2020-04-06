@@ -7,10 +7,9 @@ namespace lissajous.Materials
         public static readonly int ATTRIB_COUNT = 7;
         public static readonly int VERTEX_STRIDE = ATTRIB_COUNT * 2;
 
-        public LineMaterial(int Width, int Height) : base(Width, Height)
+        public LineMaterial()
         {
             RenderShader = new Shader("Shaders/line.vert", "Shaders/line.frag");
-            RenderShader.Use();
 
             int posLocation = RenderShader.GetAttribLocation("aPosition");
             GL.VertexAttribPointer(posLocation, 2, VertexAttribPointerType.Float, false, ATTRIB_COUNT * sizeof(float), 0);
@@ -25,10 +24,10 @@ namespace lissajous.Materials
             GL.EnableVertexAttribArray(norLocation);
         }
 
-        public override void Use(Texture source = null)
+        public override void Use(Texture source, Texture target)
         {
-            base.Use(source);
-            UseRenderTarget();
+            RenderShader.Use();
+            Render(source, target, true, false);
         }
     }
 }

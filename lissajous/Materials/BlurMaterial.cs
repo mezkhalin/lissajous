@@ -6,30 +6,29 @@ namespace lissajous.Materials
     public class BlurMaterial : Material
     {
         public bool Horizontal = true;
-        public float StandardDeviation = .02f;
-        public float StdDevSqrd;
-        public float PiFact;
 
-        public BlurMaterial(int Width, int Height) : base(Width, Height)
+        private Texture temp;
+
+        public BlurMaterial()
         {
-            RenderShader = new Shader("Shaders/quad.vert", "Shaders/blur.frag");
+            RenderShader = new Shader("Shaders/quad.vert", "Shaders/gauss.frag");
+            temp = new Texture(Width, Height);
+        }
+
+        public override void Use(Texture source, Texture target)
+        {
             RenderShader.Use();
-            SetStandardDeviation(20f);
+
+            RenderShader.SetInt("Horizontal", 1);
+            Render(source, temp);
+            RenderShader.SetInt("Horizontal", 0);
+            Render(temp, target);
         }
 
-        public void SetStandardDeviation (float val)
+        public override void Dispose()
         {
-            StdDevSqrd = val * val;
-            PiFact = 1f / (float)Math.Sqrt(2f * Math.PI * StdDevSqrd);
-        }
-
-        public override void Use(Texture source = null)
-        {
-            UseRenderTarget();
-            RenderShader.SetFloat("StdDevSqrd", StdDevSqrd);
-            RenderShader.SetFloat("PiFact", PiFact);
-            RenderShader.SetInt("Horizontal", Horizontal ? 1 : 0);
-            base.Use(source);
+            base.Dispose();
+            GL.DeleteTexture(temp.Handle);
         }
     }
 }

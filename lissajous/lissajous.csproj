@@ -98,12 +98,13 @@
     <None Include="Shaders\combine.frag">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="Shaders\gauss.frag">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Shaders\pass.frag">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Shaders\blur.frag">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <None Include="Shaders\blur.frag" />
     <None Include="Shaders\quad.vert">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

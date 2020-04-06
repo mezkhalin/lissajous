@@ -6,17 +6,18 @@ namespace lissajous.Materials
     {
         public Texture Combine;
 
-        public CombineMaterial (int Width, int Height) : base(Width, Height)
+        public CombineMaterial ()
         {
             RenderShader = new Shader("Shaders/quad.vert", "Shaders/combine.frag");
             RenderShader.Use();
+            Combine = Sharpscope.ScreenGrab;
         }
 
-        public override void Use(Texture source = null)
+        public override void Use(Texture source, Texture target)
         {
-            base.Use(source);
             RenderShader.SetInt("Combine", 1);
             Combine.Use(TextureUnit.Texture1);
+            Render(source, target);
         }
     }
 }
