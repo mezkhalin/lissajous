@@ -10,11 +10,11 @@ namespace lissajous
 
     public static class LineTools
     {
-        public static float Width = .007f;
+        public static float Width = .0085f;
 
         public static void ComputeNormals (ref List<VertexData> data)
         {
-            float miterMax = Width * 2f;
+            float miterMax = Width * 1.5f;
             float halfWidth = Width / 2f;
             bool isFirst = true;  // work-around non-nullable vectors
             bool isLast = false;
@@ -28,10 +28,10 @@ namespace lissajous
                 if (i < data.Count - 1) next = data[i + 1];
                 else isLast = true;
 
-                dirA = Direction(cur.Position, last.Position);
+                dirA = (cur.Position - last.Position).Normalized();
                 if (isFirst) // set up first normal
                 {
-                    last.Normal = Normal(dirA);
+                    last.Normal = new Vector2(-dirA.Y, dirA.X);
                     last.MiterLength = Width;
                     data[0] = last;
                     isFirst = false;
@@ -39,12 +39,12 @@ namespace lissajous
 
                 if(isLast)  // set up last normal
                 {
-                    cur.Normal = Normal(dirA);
+                    cur.Normal = new Vector2(-dirA.Y, dirA.X);
                     cur.MiterLength = Width;
                 }
                 else
                 {
-                    dirB = Direction(next.Position, cur.Position);
+                    dirB = (next.Position - cur.Position).Normalized();
 
                     // compute miter by Matt DesLauriers @mattdesl
 
@@ -55,59 +55,12 @@ namespace lissajous
 
                     //get the necessary length of our miter
                     cur.MiterLength = halfWidth / Vector2.Dot(cur.Normal, new Vector2(-dirA.Y, dirA.X));
-                    if (cur.MiterLength < 0) cur.MiterLength = Math.Abs(cur.MiterLength);
+                    if (cur.MiterLength < -miterMax) cur.MiterLength = -miterMax; // Math.Abs(cur.MiterLength);
                     if (cur.MiterLength > miterMax) cur.MiterLength = miterMax;
                 }
 
                 data[i] = cur;
             }
         }
-
-        private static Vector3 ComputeMiter (Vector2 dirA, Vector2 dirB, float halfThickness)
-        {
-            // get tangent line
-            Vector2 tangent = (dirA + dirB).Normalized();
-            // get miter as unit vector
-            Vector2 miter = new Vector2(-tangent.Y, tangent.X);
-            Vector2 dirAN = new Vector2(-dirA.Y, dirA.X);
-
-            //get the necessary length of our miter
-            float length = halfThickness / Vector2.Dot(miter, dirAN);
-            return new Vector3(miter.X, miter.Y, length);
-        }
-
-        #region UTILS
-
-        private static Vector2 Normal (Vector2 dir)
-        {
-            return new Vector2(-dir.Y, dir.X);
-        }
-
-        private static Vector2 Direction (Vector2 a, Vector2 b)
-        {
-            return (a - b).Normalized();
-        }
-
-        ///------------------------------------------------------------///
-        /// Miter function and line tool by Matt DesLauriers @mattdesl ///
-        ///------------------------------------------------------------///
-
-        private static Vector2 tangent = Vector2.Zero;
-
-        private static float ComputeMiter (Vector2 lineA, Vector2 lineB, float halfThick, out Vector2 miter)
-        {
-            //get tangent line
-            tangent = lineA + lineB;
-            tangent.Normalize();
-
-            //get miter as a unit vector
-            miter = new Vector2(-tangent.Y, tangent.X);
-            Vector2 tmp = new Vector2(-lineA.Y, lineA.X);
-
-            //get the necessary length of our miter
-            return halfThick / Vector2.Dot(miter, tmp);
-        }
-
-        #endregion
     }
 }

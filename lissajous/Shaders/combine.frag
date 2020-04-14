@@ -8,5 +8,5 @@ in vec2 UV;
 
 void main(void)
 {
-    outputColor = texture(Source, UV) + texture(Combine, UV);
+    outputColor = (texture(Source, UV) + texture(Combine, UV));
 }

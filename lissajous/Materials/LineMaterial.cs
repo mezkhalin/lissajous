@@ -1,4 +1,5 @@
-﻿using OpenTK.Graphics.OpenGL4;
+﻿using OpenTK;
+using OpenTK.Graphics.OpenGL4;
 
 namespace lissajous.Materials
 {
@@ -6,6 +7,8 @@ namespace lissajous.Materials
     {
         public static readonly int ATTRIB_COUNT = 7;
         public static readonly int VERTEX_STRIDE = ATTRIB_COUNT * 2;
+
+        public Vector3 Color = new Vector3(.2f, 1f, .2f);
 
         public LineMaterial()
         {
@@ -26,6 +29,7 @@ namespace lissajous.Materials
 
         public override void Use(Texture source, Texture target)
         {
+            RenderShader.SetVector3("Color", Color);
             RenderShader.Use();
             Render(source, target, true, false);
         }

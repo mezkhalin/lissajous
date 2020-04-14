@@ -6,6 +6,7 @@ namespace lissajous.Materials
     public class Material
     {
         public Shader RenderShader;
+        public bool IsEnabled = true;
 
         internal int Width { get { return Sharpscope.GetWidth; } }
         internal int Height { get { return Sharpscope.GetHeight; } }
@@ -19,10 +20,9 @@ namespace lissajous.Materials
         {
             if (RenderShader == null) return;
             RenderShader.Use();
-            Render(source, target);
         }
 
-        internal void Render (Texture source, Texture target, bool clear = true, bool isPost = true)
+        public void Render (Texture source, Texture target, bool clear = true, bool isPost = true)
         {
             if(source != null)
             {
