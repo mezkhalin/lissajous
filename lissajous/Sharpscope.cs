@@ -254,10 +254,25 @@ namespace lissajous
                 data.Add(vd);
             }
 
+            /*VertexData vdA = new VertexData();
+            VertexData vdB = new VertexData();
+            VertexData vdC = new VertexData();
+            vdA.Position = new Vector2(-.8f, .8f);
+            vdB.Position = new Vector2();
+            vdC.Position = new Vector2(.8f, .8f);
+            data.Add(vdA);
+            data.Add(vdB);
+            data.Add(vdC);*/
+
+            if (settings.Interpolate)
+                data = LineTools.Interpolate(data, settings.IntrpLevel);
+
             LineTools.ComputeNormals(ref data);
-            if (dataQueue.Count >= data.Count) dataQueue.Clear();
+            if (dataQueue.Count > data.Count) dataQueue.Clear();
             ticks = Math.Max(ticks - 1, 1);
             vertexLength = (int)Math.Ceiling((double)(data.Count / ticks));
+            /*vertexLength = Math.Max(vertexLength, 1000);
+            vertexLength = Math.Min(vertexLength, data.Count);*/
             ticks = 0;
             data.ForEach(dataQueue.Enqueue);
 

@@ -33,7 +33,7 @@ namespace lissajous
             get { return _lineWidth; }
             set { _lineWidth = value; OnPropertyChanged(PropertyType.LINE_WIDTH); }
         }
-        private float _lineWidth = 0.008f;
+        private float _lineWidth = 0.0045f;
 
         public Vector3 LineColorVec () { return _lineColor; }
         public Color LineColor
@@ -53,7 +53,7 @@ namespace lissajous
         private Vector3 _lineColor = new Vector3(.2f, 1f, .2f);
 
         public bool Interpolate { get; set; } = true;
-        public int IntrpLevel { get; set; } = 1;
+        public int IntrpLevel { get; set; } = 5;
 
         public Settings ()
         {

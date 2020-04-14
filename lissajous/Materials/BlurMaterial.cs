@@ -12,7 +12,7 @@ namespace lissajous.Materials
 
         public BlurMaterial()
         {
-            int fac = 4;
+            int fac = 8;
             RenderShader = new Shader("Shaders/quad.vert", "Shaders/gauss.frag");
             tempA = new Texture(Width / fac, Height / fac);
             tempB = new Texture(Width / fac, Height / fac);

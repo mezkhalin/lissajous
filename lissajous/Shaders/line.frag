@@ -5,5 +5,6 @@ in vec4 opColor;
 
 void main(void)
 {
-    outputColor = vec4(opColor.xyz, opColor.w * opColor.w); //vec4(0.04, .5, 0.04, .4);
+	float w = 1.0 - opColor.w;
+    outputColor = vec4(opColor.xyz, 1.0 - (w * w * w * w)); //vec4(0.04, .5, 0.04, .4);
 }

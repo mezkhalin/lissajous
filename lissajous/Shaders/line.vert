@@ -1,8 +1,8 @@
 ﻿#version 330 core
 
-#define MAX_DIST 0.07
-#define MAX_ALPHA 0.6
-#define MIN_ALPHA 0.2
+#define MAX_DIST 0.022
+#define MAX_ALPHA 0.06
+#define MIN_ALPHA 0.006
 
 uniform vec3 Color;
 
@@ -18,7 +18,7 @@ void main(void)
 
 	float distFac = distance(aNext, aPosition) / MAX_DIST;
 	distFac = clamp(distFac, 0.0, 1.0);
-	distFac = 1.0 - (distFac * distFac);
+	//distFac = 1.0 - (distFac * distFac);
 
-	opColor = vec4(Color.r, Color.g, Color.b, distFac * (MAX_ALPHA - MIN_ALPHA) + MIN_ALPHA);
+	opColor = vec4(Color.r, Color.g, Color.b, (1.0 - distFac) * (MAX_ALPHA - MIN_ALPHA) + MIN_ALPHA);
 }
