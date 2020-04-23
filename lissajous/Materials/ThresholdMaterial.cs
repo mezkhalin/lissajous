@@ -9,6 +9,7 @@ namespace lissajous.Materials
 {
     public class ThresholdMaterial : Material
     {
+        public float Glow = 0f;
 
         public ThresholdMaterial ()
         {
@@ -17,6 +18,7 @@ namespace lissajous.Materials
 
         public override void Use(Texture source, Texture target)
         {
+            RenderShader.SetFloat("Glow", Glow);
             RenderShader.Use();
             Render(source, target);
         }

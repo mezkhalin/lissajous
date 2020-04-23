@@ -5,14 +5,12 @@ namespace lissajous.Materials
 {
     public class BlurMaterial : Material
     {
-        public bool Horizontal = true;
-
         private Texture tempA;
         private Texture tempB;
 
         public BlurMaterial()
         {
-            int fac = 8;
+            int fac = 2;
             RenderShader = new Shader("Shaders/quad.vert", "Shaders/gauss.frag");
             tempA = new Texture(Width / fac, Height / fac);
             tempB = new Texture(Width / fac, Height / fac);

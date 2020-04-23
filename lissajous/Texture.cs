@@ -40,13 +40,13 @@ namespace lissajous
             //   And finally, the actual pixels.
             GL.TexImage2D(TextureTarget.Texture2D,
                 0,
-                PixelInternalFormat.Rgba,
+                PixelInternalFormat.SrgbAlpha,
                 Width,
                 Height,
                 0,
-                PixelFormat.Bgra,
-                PixelType.UnsignedByte,
-                new byte[Width * Height * 4]);
+                PixelFormat.Rgba,
+                PixelType.Float,
+                IntPtr.Zero);
 
             // Now that our texture is loaded, we can set a few settings to affect how the image appears on rendering.
 

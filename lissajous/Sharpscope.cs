@@ -113,6 +113,14 @@ namespace lissajous
                 case PropertyType.LINE_COLOR:
                     lineMat.Color = settings.LineColorVec();
                     break;
+                case PropertyType.LINE_ALPHA:
+                    lineMat.AlphaLength = settings.AlphaLength;
+                    lineMat.MaxAlpha = settings.MaxAlpha;
+                    lineMat.MinAlpha = settings.MinAlpha;
+                    break;
+                case PropertyType.GLOW:
+                    threshMat.Glow = settings.Glow;
+                    break;
             }
         }
 
@@ -254,16 +262,6 @@ namespace lissajous
                 data.Add(vd);
             }
 
-            /*VertexData vdA = new VertexData();
-            VertexData vdB = new VertexData();
-            VertexData vdC = new VertexData();
-            vdA.Position = new Vector2(-.8f, .8f);
-            vdB.Position = new Vector2();
-            vdC.Position = new Vector2(.8f, .8f);
-            data.Add(vdA);
-            data.Add(vdB);
-            data.Add(vdC);*/
-
             if (settings.Interpolate)
                 data = LineTools.Interpolate(data, settings.IntrpLevel);
 
@@ -327,10 +325,13 @@ namespace lissajous
             setupArrays(vertexLength);
 
             GL.ClearColor(0f, 0f, 0f, 1f);
-            
+
+            GL.Enable(EnableCap.FramebufferSrgb);
             GL.Enable(EnableCap.Blend);
             GL.BlendEquation(BlendEquationMode.FuncAdd);
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.DstAlpha);
+            // GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+            //GL.BlendFuncSeparate(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha, BlendingFactorSrc.One, BlendingFactorDest.OneMinusSrcAlpha);
 
             vertexBufferObject = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBufferObject);

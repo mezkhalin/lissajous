@@ -10,7 +10,7 @@ namespace lissajous
 
     public static class LineTools
     {
-        public static float Width = .0045f;
+        public static float Width = .009f;
 
         public static void ComputeNormals (ref List<VertexData> data)
         {

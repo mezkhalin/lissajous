@@ -11,7 +11,9 @@ namespace lissajous
     public enum PropertyType
     {
         LINE_WIDTH,
-        LINE_COLOR
+        LINE_COLOR,
+        LINE_ALPHA,
+        GLOW
     }
 
     public class SettingsEventArgs : EventArgs
@@ -33,7 +35,7 @@ namespace lissajous
             get { return _lineWidth; }
             set { _lineWidth = value; OnPropertyChanged(PropertyType.LINE_WIDTH); }
         }
-        private float _lineWidth = 0.0045f;
+        private float _lineWidth = 0.009f;
 
         public Vector3 LineColorVec () { return _lineColor; }
         public Color LineColor
@@ -44,16 +46,60 @@ namespace lissajous
                 (int)(_lineColor.Z * byte.MaxValue)
             ); }
             set {
-                _lineColor.X = value.R / byte.MaxValue;
-                _lineColor.Y = value.G / byte.MaxValue;
-                _lineColor.Z = value.B / byte.MaxValue;
+                _lineColor.X = value.R / (float)byte.MaxValue;
+                _lineColor.Y = value.G / (float)byte.MaxValue;
+                _lineColor.Z = value.B / (float)byte.MaxValue;
                 OnPropertyChanged(PropertyType.LINE_COLOR);
             }
         }
-        private Vector3 _lineColor = new Vector3(.2f, 1f, .2f);
+        private Vector3 _lineColor = new Vector3(.1f, 1f, .1f);
 
-        public bool Interpolate { get; set; } = true;
+        public bool Interpolate { get; set; } = false;
         public int IntrpLevel { get; set; } = 5;
+
+        public float AlphaLength
+        {
+            get { return _alphaLength; }
+            set
+            {
+                _alphaLength = value;
+                OnPropertyChanged(PropertyType.LINE_ALPHA);
+            }
+        }
+        private float _alphaLength = .022f;
+
+        public float MinAlpha
+        {
+            get { return _minAlpha; }
+            set
+            {
+                _minAlpha = value;
+                OnPropertyChanged(PropertyType.LINE_ALPHA);
+            }
+        }
+        private float _minAlpha = .006f;
+
+        public float MaxAlpha
+        {
+            get { return _maxAlpha; }
+            set
+            {
+                _maxAlpha = value;
+                OnPropertyChanged(PropertyType.LINE_ALPHA);
+            }
+        }
+        private float _maxAlpha = .06f;
+
+        public float Glow
+        {
+            get { return _glow; }
+            set
+            {
+                _glow = value;
+                OnPropertyChanged(PropertyType.GLOW);
+            }
+        }
+        private float _glow = 0f;
 
         public Settings ()
         {

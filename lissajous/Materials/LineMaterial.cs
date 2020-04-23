@@ -8,7 +8,10 @@ namespace lissajous.Materials
         public static readonly int ATTRIB_COUNT = 7;
         public static readonly int VERTEX_STRIDE = ATTRIB_COUNT * 2;
 
-        public Vector3 Color = new Vector3(.2f, 1f, .2f);
+        public Vector3 Color = new Vector3(.1f, 1f, .1f);
+        public float AlphaLength = .022f;
+        public float MaxAlpha = .066f;
+        public float MinAlpha = .006f;
 
         public LineMaterial()
         {
@@ -30,6 +33,9 @@ namespace lissajous.Materials
         public override void Use(Texture source, Texture target)
         {
             RenderShader.SetVector3("Color", Color);
+            RenderShader.SetFloat("MaxDist", AlphaLength);
+            RenderShader.SetFloat("MaxAlpha", MaxAlpha);
+            RenderShader.SetFloat("MinAlpha", MinAlpha);
             RenderShader.Use();
             Render(source, target, true, false);
         }

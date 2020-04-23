@@ -22,7 +22,7 @@ namespace lissajous
             Sharpscope scope;
             using (scope = new Sharpscope(1024, 1024, "Sharpscope"))
             {
-                scope.Run(120);
+                scope.Run(120, 60);
             }
         }
     }
